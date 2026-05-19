@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天翼云公有云主机报价计算器</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 500;
+            color: #555;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .form-group select,
+        .form-group input {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .form-group select:focus,
+        .form-group input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        .result-panel {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .result-item .label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .result-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .result-item .unit {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        
+        .discount-badge {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .price-highlight {
+            color: #e74c3c;
+            font-weight: 700;
+        }
+        
+        .discount-highlight {
+            color: #27ae60;
+            font-weight: 700;
+        }
+        
+        .config-list {
+            margin-top: 20px;
+        }
+        
+        .config-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .config-item .remove-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 0;
+        }
+        
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .tab:hover {
+            color: #667eea;
+        }
+        
+        .info-box {
+            background: #e8f4fd;
+            border-left: 4px solid #3498db;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .info-box h4 {
+            color: #2980b9;
+            margin-bottom: 8px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>☁️ 天翼云公有云主机报价计算器</h1>
+            <p>支持多种规格类型、计费模式，一键导出Excel报价单</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📋 配置参数</div>
+            
+            <div class="info-box">
+                <h4>💡 使用说明</h4>
+                <p>选择云主机规格、CPU核数、内存大小、计费模式和购买时长，系统将自动计算价格并应用对应的包年折扣优惠。支持添加多个配置进行对比，可一键导出Excel报价单。</p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>规格类别</label>
+                    <select id="specCategory" onchange="updateSpecTypes()">
+                        <option value="general">通用型</option>
+                        <option value="compute">计算型</option>
+                        <option value="memory">内存型</option>
+                        <option value="enhanced">增强型</option>
+                        <option value="kunpeng">鲲鹏系列</option>
+                        <option value="hygon">海光系列</option>
+                        <option value="phytium">飞腾系列</option>
+                        <option value="economy">经济型</option>
+                        <option value="gpu">GPU型</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>规格类型</label>
+                    <select id="specType" onchange="updateCpuOptions(); updateGpuSpecOptions();">
+                    </select>
+                    <select id="gpuSpec" style="display: none;" onchange="updateGpuInfo()">
+                    </select>
+                    <small id="gpuInfo" class="config-hint" style="display: none; color: #27ae60; font-weight: bold;"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label>CPU核数</label>
+                    <select id="cpuCores" onchange="updateMemOptions(); updateGpuMemOptions();">
+                    </select>
+                    <small id="cpuHint" class="config-hint" style="color: #888; font-size: 0.8rem;"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label>内存大小 (GB)</label>
+                    <select id="memorySize">
+                    </select>
+                    <small id="memHint" class="config-hint" style="color: #888; font-size: 0.8rem;"></small>
+                </div>
+                
+                <div class="form-group">
+                    <label>购买数量</label>
+                    <input type="number" id="quantity" value="1" min="1" max="100">
+                </div>
+            </div>
+            
+            <div class="card-title" style="margin-top: 30px;">💾 存储配置</div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>系统盘类型</label>
+                    <select id="systemDiskType">
+                        <option value="sata">普通IO (SATA)</option>
+                        <option value="sas">高IO (SAS)</option>
+                        <option value="ssd">通用型SSD</option>
+                        <option value="ssd-high">超高IO (SSD)</option>
+                        <option value="ssd-extreme">极速型SSD</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>系统盘容量 (GB)</label>
+                    <input type="number" id="systemDiskSize" value="40" min="20" max="32768" step="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>数据盘类型</label>
+                    <select id="dataDiskType">
+                        <option value="none">不购买数据盘</option>
+                        <option value="sata">普通IO (SATA)</option>
+                        <option value="sas">高IO (SAS)</option>
+                        <option value="ssd">通用型SSD</option>
+                        <option value="ssd-high">超高IO (SSD)</option>
+                        <option value="ssd-extreme">极速型SSD</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>数据盘容量 (GB)</label>
+                    <input type="number" id="dataDiskSize" value="100" min="10" max="32768" step="10">
+                </div>
+                
+                <div class="form-group">
+                    <label>数据盘数量</label>
+                    <input type="number" id="dataDiskCount" value="1" min="0" max="24">
+                </div>
+            </div>
+            
+            <!-- 弹性IP配置 -->
+            <div class="section-title" style="margin-top: 30px;">
+                <span>🌐</span>
+                <span>弹性IP配置</span>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>弹性IP</label>
+                    <select id="eipEnabled">
+                        <option value="no">不购买</option>
+                        <option value="yes">购买弹性IP</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>带宽 (Mbps)</label>
+                    <input type="number" id="eipBandwidth" value="5" min="1" max="1000" step="1">
+                </div>
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="addToCompare()">
+                    ➕ 添加到表格
+                </button>
+                <button class="btn btn-warning" onclick="clearAll()">
+                    🗑️ 清空全部
+                </button>
+            </div>
+            
+            <div id="resultPanel" class="result-panel" style="display: none;">
+                <div class="result-grid">
+                    <div class="result-item">
+                        <div class="label">规格类型</div>
+                        <div class="value" id="resultSpec">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">配置</div>
+                        <div class="value" id="resultConfig">-</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">月单价(含硬盘)</div>
+                        <div class="value" id="resultUnitPrice">-</div>
+                        <div class="unit">元/月</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包1年原价</div>
+                        <div class="value price-highlight" id="resultYear1Original">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包1年折扣价</div>
+                        <div class="value" style="color: #e74c3c;" id="resultYear1Discount">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包2年折扣价</div>
+                        <div class="value" style="color: #e74c3c;" id="resultYear2Discount">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包3年折扣价</div>
+                        <div class="value" style="color: #e74c3c;" id="resultYear3Discount">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包4年折扣价</div>
+                        <div class="value" style="color: #e74c3c;" id="resultYear4Discount">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="label">包5年折扣价</div>
+                        <div class="value" style="color: #e74c3c;" id="resultYear5Discount">-</div>
+                        <div class="unit">元</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📊 配置对比列表</div>
+            
+            <div id="compareList" class="config-list">
+                <p style="color: #999; text-align: center; padding: 40px;">暂无配置，请添加配置进行对比</p>
+            </div>
+            
+            <div id="compareTable" style="display: none;">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>规格类型</th>
+                            <th>CPU核数</th>
+                            <th>内存(GB)</th>
+                            <th>数量</th>
+                            <th>显卡配置</th>
+                            <th>存储配置</th>
+                            <th>弹性IP</th>
+                            <th>月单价(元)</th>
+                            <th>月总价(元)</th>
+                            <th>包1年原价</th>
+                            <th>包1年折扣价</th>
+                            <th>包2年折扣价</th>
+                            <th>包3年折扣价</th>
+                            <th>包4年折扣价</th>
+                            <th>包5年折扣价</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                    <tfoot id="tableFoot" style="background: #f8f9fa; font-weight: bold; border-top: 2px solid #dee2e6;">
+                    </tfoot>
+                </table>
+                
+                <div class="btn-group" style="margin-top: 20px;">
+                    <button class="btn btn-success" onclick="exportToExcel()">
+                        📥 导出Excel报价单
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-title">📖 包年折扣政策</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>规格类型</th>
+                        <th>规格族</th>
+                        <th>1年</th>
+                        <th>2年</th>
+                        <th>3年</th>
+                        <th>4年</th>
+                        <th>5年</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>通用型</td><td>s2</td><td>8.5折</td><td>7折</td><td>5折</td><td>4.5折</td><td>4折</td></tr>
+                    <tr><td>通用型</td><td>s3, s6</td><td>6折</td><td>5.5折</td><td>3折</td><td>3折</td><td>3折</td></tr>
+                    <tr><td>通用型</td><td>s7, s8, s8e</td><td>8折</td><td>7.8折</td><td>7.5折</td><td>7.3折</td><td>7.2折</td></tr>
+                    <tr><td>计算型</td><td>c3, c6</td><td>6折</td><td>5.5折</td><td>3折</td><td>3折</td><td>3折</td></tr>
+                    <tr><td>计算型</td><td>c7, c8, c8e</td><td>8折</td><td>7.8折</td><td>7.5折</td><td>7.3折</td><td>7.2折</td></tr>
+                    <tr><td>内存型</td><td>m2</td><td>8.5折</td><td>7折</td><td>5折</td><td>4.5折</td><td>4折</td></tr>
+                    <tr><td>内存型</td><td>m3, m6</td><td>6折</td><td>5.5折</td><td>3折</td><td>3折</td><td>3折</td></tr>
+                    <tr><td>内存型</td><td>m7, m8, m8e</td><td>8折</td><td>7.8折</td><td>7.5折</td><td>7.3折</td><td>7.2折</td></tr>
+                    <tr><td>增强型</td><td>c7ne, c8ne, m8ne</td><td>8.5折</td><td>7折</td><td>5折</td><td>4.5折</td><td>4折</td></tr>
+                    <tr><td>鲲鹏</td><td>ks1, kc1, km1</td><td>8.5折</td><td>7折</td><td>5折</td><td>5折</td><td>5折</td></tr>
+                    <tr><td>鲲鹏</td><td>ks2x, kc2x, km2x</td><td>9.5折</td><td>9.0折</td><td>8.5折</td><td>8.5折</td><td>8.5折</td></tr>
+                    <tr><td>海光</td><td>hs1, hc1, hm1</td><td>8.5折</td><td>7折</td><td>5折</td><td>5折</td><td>5折</td></tr>
+                    <tr><td>海光</td><td>hs3x, hc3x, hm3x</td><td>9.5折</td><td>9.0折</td><td>8.5折</td><td>8.5折</td><td>8.5折</td></tr>
+                    <tr><td>飞腾</td><td>fs1, fc1, fm1</td><td>8.5折</td><td>7折</td><td>5折</td><td>5折</td><td>5折</td></tr>
+                    <tr><td>经济型</td><td>e</td><td>3.4折</td><td>2.5折</td><td>2.1折</td><td>2.1折</td><td>2.1折</td></tr>
+                    <tr style="background: #fff3e0;"><td><strong>GPU型</strong></td><td><strong>NVIDIA GPU</strong><br><small>PI7/P8A/P8AV/P2V/P2VS/PI2/G7/G6/G5/G5S</small></td><td><strong>8.5折</strong></td><td><strong>7折</strong></td><td><strong>5折</strong></td><td>5折</td><td>5折</td></tr>
+                    <tr style="background: #e8f5e9;"><td><strong>GPU型</strong></td><td><strong>国产计算加速型</strong><br><small>PAK1/PAK2/PAK3/PCH1</small></td><td><strong>8.5折</strong></td><td>8.5折</td><td>8.5折</td><td>8.5折</td><td>8.5折</td></tr>
+                    <tr style="background: #fce4ec;"><td><strong>GPU型</strong></td><td><strong>其他GPU规格</strong><br><small>PN8S/PN8I/PN8R</small></td><td>无折扣</td><td>无折扣</td><td>无折扣</td><td>无折扣</td><td>无折扣</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script src="pricing.js"></script>
+</body>
+</html>
