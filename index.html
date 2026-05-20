@@ -317,9 +317,97 @@
                 justify-content: center;
             }
         }
+        
+        /* 报价提示弹窗样式 */
+        .price-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .price-modal-overlay.show {
+            display: flex;
+        }
+        
+        .price-modal {
+            background: white;
+            border-radius: 16px;
+            padding: 30px 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .price-modal-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .price-modal h3 {
+            color: #e74c3c;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+        
+        .price-modal p {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+        
+        .price-modal .btn-modal {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .price-modal .btn-modal:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
     </style>
 </head>
 <body>
+    <!-- 报价提示弹窗 -->
+    <div class="price-modal-overlay" id="priceModal">
+        <div class="price-modal">
+            <div class="price-modal-icon">📢</div>
+            <h3>报价仅供参考</h3>
+            <p>
+                本工具提供的报价仅为估算参考，<br>
+                实际价格请以<strong>天翼云官网</strong>为准。<br>
+                如有疑问，请登录官网查看最新价格。
+            </p>
+            <button class="btn-modal" onclick="closePriceModal()">我知道了</button>
+        </div>
+    </div>
+    
     <div class="container">
         <div class="header">
             <h1>☁️ 天翼云公有云主机报价计算器</h1>
@@ -583,5 +671,35 @@
     </div>
     
     <script src="pricing.js"></script>
+    <script>
+        // 报价提示弹窗功能
+        function showPriceModal() {
+            document.getElementById('priceModal').classList.add('show');
+        }
+        
+        function closePriceModal() {
+            document.getElementById('priceModal').classList.remove('show');
+        }
+        
+        // 页面加载时显示弹窗
+        window.addEventListener('DOMContentLoaded', function() {
+            showPriceModal();
+        });
+        
+        // 重写导出函数，导出前显示弹窗
+        const originalExportToExcel = window.exportToExcel;
+        window.exportToExcel = function() {
+            showPriceModal();
+            // 用户确认后再执行导出
+            const originalClose = closePriceModal;
+            closePriceModal = function() {
+                originalClose();
+                closePriceModal = originalClose;
+                if (typeof originalExportToExcel === 'function') {
+                    originalExportToExcel();
+                }
+            };
+        };
+    </script>
 </body>
 </html>
