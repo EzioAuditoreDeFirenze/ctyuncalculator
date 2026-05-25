@@ -38,6 +38,10 @@ const pricingData = {
     'kc1': { cpuMonthly: 104, cpuHourly: 0.2167, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
     'km2x': { cpuMonthly: 104, cpuHourly: 0.2167, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
     'km1': { cpuMonthly: 104, cpuHourly: 0.2167, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
+    // 鲲鹏网络增强系列 (参考鲲鹏系列定价)
+    'ks2xne': { cpuMonthly: 52, cpuHourly: 0.1084, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    'kc2xne': { cpuMonthly: 104, cpuHourly: 0.2167, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    'km2xne': { cpuMonthly: 104, cpuHourly: 0.2167, memMonthly: 15, memHourly: 0.0313, type: 'kunpeng', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
     
     // 海光系列
     'hs3x': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
@@ -46,10 +50,21 @@ const pricingData = {
     'hc1': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
     'hm3x': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
     'hm1': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
+    // 海光网络增强系列 (参考海光系列定价)
+    'hs3xne': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    'hc3xne': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    'hm3xne': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    // 海光安全增强系列 (参考海光系列定价)
+    'hc4t': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
+    'hm4t': { cpuMonthly: 89, cpuHourly: 0.1854, memMonthly: 14, memHourly: 0.0292, type: 'haiguang', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
     
     // 飞腾系列
     'ft2x': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'feiteng', discount: [0.95, 0.9, 0.85, 0.85, 0.85] },
     'ft1': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'feiteng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
+    // 飞腾网络增强系列 (参考飞腾系列定价)
+    'fs1': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'feiteng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
+    'fc1': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'feiteng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
+    'fm1': { cpuMonthly: 45, cpuHourly: 0.0938, memMonthly: 16, memHourly: 0.0333, type: 'feiteng', discount: [0.85, 0.7, 0.5, 0.5, 0.5] },
     
     // 经济型
     'e': { cpuMonthly: 24, cpuHourly: 0.047619, memMonthly: 12, memHourly: 0.023810, type: 'economic', discount: [0.34, 0.25, 0.21, 0.21, 0.21] }
@@ -886,8 +901,25 @@ function calculatePrice() {
 
 // 添加到表格
 function addToCompare() {
+    // 保存当前的 currentResult，用于检测 calculatePrice 是否成功
+    const prevResult = currentResult;
+    
     // 先计算价格，确保数据是最新的
     calculatePrice();
+    
+    // 检查 currentResult 是否有效（calculatePrice 可能失败）
+    // 如果 currentResult 为 null 或者与之前相同，说明计算失败
+    if (!currentResult) {
+        console.warn('[addToCompare] currentResult 为空，添加失败');
+        return;
+    }
+    
+    // 检查 currentResult 是否包含必要的字段
+    if (!currentResult.specType || !currentResult.specTypeName) {
+        console.warn('[addToCompare] currentResult 缺少必要字段:', currentResult);
+        alert('配置数据不完整，请重新选择规格');
+        return;
+    }
     
     compareList.push({...currentResult, id: Date.now()});
     renderCompareList();
